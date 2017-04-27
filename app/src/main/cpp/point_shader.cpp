@@ -5,11 +5,11 @@ const char* PointShader::VS_CODE = "#version 300 es \n"
 "uniform mat4 viewProjection;"
 
 "in vec3 position;"
-"in vec3 color;"
+"in vec4 color;"
 ""
 "out vec4 vertexColor;"
 "void main() {"
-"vertexColor = vec4(color, 1);"
+"vertexColor = color;"
 "gl_Position = viewProjection * vec4(position, 1);"
 "} \0";
 

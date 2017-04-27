@@ -12,8 +12,7 @@ private:
 
 	struct Point
 	{
-		GLfloat x,y,z;
-		GLfloat r,g,b;
+		GLfloat x,y,z, r,g,b,a;
 	};
 
 	PointShader m_pointShader;
@@ -37,7 +36,7 @@ public:
 	: m_nrPointsPerX(0)
 	, m_nrPointsPerY(0)
 	{
-		m_buffers[0] = 1;
+		memset(m_buffers, 0, NR_BUFFERS);
 	}
 
 	virtual ~Engine()

@@ -105,16 +105,16 @@ public:
 
 	void bind()
 	{
-		GLsizei stride = sizeof(GLfloat) * 6;
+		GLsizei stride = sizeof(GLfloat) * 7;
 		glUseProgram(m_program);
 		glVertexAttribPointer((GLuint)m_positionLocation, 3, GL_FLOAT, GL_FALSE, stride, 0);
 		glEnableVertexAttribArray((GLuint)m_positionLocation);
 
 		if(m_colorLocation >= 0)
 		{
-			GLsizei offset = sizeof(GLfloat) * 3;
-			glVertexAttribPointer((GLuint)m_colorLocation, 3, GL_FLOAT, GL_FALSE, stride,
-			                      (void*)&offset);
+			size_t offset = sizeof(GLfloat) * 3;
+			glVertexAttribPointer((GLuint)m_colorLocation, 4, GL_FLOAT, GL_FALSE, stride,
+			                      (void*)offset);
 			glEnableVertexAttribArray((GLuint)m_colorLocation);
 		}
 	}

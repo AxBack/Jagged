@@ -22,9 +22,11 @@ bool Engine::init(int width, int height)
 
 	Matrix projection, view;
 
-	Matrix::frustum(projection, width * -0.5f, width * 0.5f, height * -0.5f, height * 0.5f, 0.1,
-	                100);
-	Matrix::lookAt(view, {0, 0, -0.1f}, {0, 0, 1}, {0, 1, 0});
+	float halfX = static_cast<float>(width) * 0.5f;
+	float halfY = static_cast<float>(width) * 0.5f;
+
+	Matrix::frustum(projection, -halfX, halfX, -halfY, halfY, 0.1, 100);
+	Matrix::lookAt(view, {halfX, halfY, -0.1f}, {halfX, halfY, 1}, {0, 1, 0});
 	m_viewProjection = projection * view;
 
 	m_nrPointsPerX = static_cast<GLuint>(static_cast<GLfloat>(width) / size) + 1;
@@ -33,26 +35,26 @@ bool Engine::init(int width, int height)
 	unsigned int nrPoints = m_nrPointsPerX * m_nrPointsPerY;
 	m_points.resize(nrPoints);
 
-	float halfX = width * 0.5f;
-	float halfY = height * 0.5f;
-	float offsetX = width / static_cast<GLfloat>(m_nrPointsPerX);
-	float offsetY = height / static_cast<GLfloat>(m_nrPointsPerY);
+	float offsetX = static_cast<float>(width) / static_cast<GLfloat>(m_nrPointsPerX-1);
+	float offsetY = static_cast<float>(height) / static_cast<GLfloat>(m_nrPointsPerY-1);
 
-	for(unsigned int y = 0; y <= m_nrPointsPerY; ++y)
+	for(unsigned int y = 0; y < m_nrPointsPerY; ++y)
 	{
-		for(unsigned int x = 0; x <= m_nrPointsPerX; ++x)
+		for(unsigned int x = 0; x < m_nrPointsPerX; ++x)
 		{
 			unsigned int index = y * m_nrPointsPerX + x;
 			m_points[index] = {
-					-halfX + x * offsetX,
-					halfY - y * offsetY,
+					x * offsetX,
+					y * offsetY,
 					0,
 					static_cast<GLfloat>(x) / static_cast<GLfloat>(m_nrPointsPerX),
 					static_cast<GLfloat>(y) / static_cast<GLfloat>(m_nrPointsPerY),
-					static_cast<GLfloat>(x + y) / static_cast<GLfloat>(m_nrPointsPerX + m_nrPointsPerY)
+					static_cast<GLfloat>(x + y) /
+						static_cast<GLfloat>(m_nrPointsPerX + m_nrPointsPerY),
+			        1
 			};
 
-			if(y < m_nrPointsPerY && x < m_nrPointsPerX)
+			if(y < m_nrPointsPerY-1 && x < m_nrPointsPerX)
 			{
 				if(x != 0)
 				{
@@ -63,11 +65,14 @@ bool Engine::init(int width, int height)
 					});
 				}
 
-				m_indices.insert(m_indices.end(), {
-						static_cast<GLushort>(index),
-						static_cast<GLushort>(index + 1),
-						static_cast<GLushort>(index + m_nrPointsPerX)
-				});
+				if( x < m_nrPointsPerX - 1)
+				{
+					m_indices.insert(m_indices.end(), {
+							static_cast<GLushort>(index),
+							static_cast<GLushort>(index + 1),
+							static_cast<GLushort>(index + m_nrPointsPerX)
+					});
+				}
 			}
 		}
 	}
@@ -104,7 +109,7 @@ bool Engine::render()
 	m_pointShader.setViewProjection(m_viewProjection);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffers[IBO]);
-	glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, (GLsizei)m_indices.size(), GL_UNSIGNED_SHORT, (void*)0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
