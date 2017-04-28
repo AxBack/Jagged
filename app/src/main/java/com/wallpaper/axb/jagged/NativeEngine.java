@@ -1,12 +1,10 @@
 package com.wallpaper.axb.jagged;
 
-/**
- * Created by AxB on 4/22/2017.
- */
+import android.content.res.AssetManager;
 
-public class NativeEngine {
+class NativeEngine {
 
-    public native boolean create(int width, int height);
+    public native boolean create(AssetManager assetManager, int width, int height);
     public native void destroy();
     public native boolean render();
 

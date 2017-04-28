@@ -7,10 +7,12 @@ Engine* m_pEngine = nullptr;
 extern "C" {
 
 JNIEXPORT jboolean JNICALL Java_com_wallpaper_axb_jagged_NativeEngine_create(JNIEnv* env, jobject /* this */,
-                                                                             int width, int height)
+                                                                             jobject assetManager,
+																			 int width, int height)
 {
 	m_pEngine = new Engine;
-	return m_pEngine->init(width, height);
+	AAssetManager* pAssetManager =  AAssetManager_fromJava(env, assetManager);
+	return m_pEngine->init(pAssetManager, width, height);
 }
 
 JNIEXPORT void JNICALL Java_com_wallpaper_axb_jagged_NativeEngine_destroy(JNIEnv* pEnv, jobject /*this */)

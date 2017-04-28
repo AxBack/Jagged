@@ -62,7 +62,7 @@ public:
 	}
 
 	static Matrix& frustum(Matrix& m, float left, float right, float bottom, float top, float near,
-	                       float far)
+						   float far)
 	{
 		float width = 1.0f / (right - left);
 		float height = 1.0f / (top - bottom);
@@ -90,6 +90,38 @@ public:
 		m.mData[12] = 0.0f;
 		m.mData[13] = 0.0f;
 		m.mData[15] = 0.0f;
+
+		return m;
+	}
+
+	static Matrix& ortho(Matrix& m, float left, float right, float bottom, float top, float near,
+						 float far)
+	{
+		float width = 1.0f / (right - left);
+		float height = 1.0f / (top - bottom);
+		float depth = 1.0f / (far - near);
+		float x = 2.0f * width;
+		float y = 2.0f * height;
+		float z = -2.0f / depth;
+		float tx = -(right + left) * width;
+		float ty = -(top + bottom) * height;
+		float tz = -(far + near) * depth;
+		m.mData[0] = x;
+		m.mData[5] = y;
+		m.mData[10] = z;
+		m.mData[12] = tx;
+		m.mData[13] = ty;
+		m.mData[14] = tz;
+		m.mData[15] = 1.0f;
+		m.mData[1] = 0.0f;
+		m.mData[2] = 0.0f;
+		m.mData[3] = 0.0f;
+		m.mData[4] = 0.0f;
+		m.mData[6] = 0.0f;
+		m.mData[7] = 0.0f;
+		m.mData[8] = 0.0f;
+		m.mData[9] = 0.0f;
+		m.mData[11] = 0.0f;
 
 		return m;
 	}

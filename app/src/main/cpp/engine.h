@@ -1,34 +1,42 @@
 #pragma once
 
+#include <android/asset_manager_jni.h>
+
 #include <vector>
 #include "matrix.h"
 #include "pch.h"
 
 #include "point_shader.h"
+#include "updater.h"
+
 
 class Engine
 {
 private:
 
+#define SCALE_FACTOR 6;
+#define NR_BUFFERS 3
+#define STATIC_BUFFER_INDEX 0
+#define DYNAMIC_BUFFER_INDEX 1
+#define INDEX_BUFFER_INDEX 2
+
 	struct Point
 	{
-		GLfloat x,y,z, r,g,b,a;
+		GLfloat x,y;
 	};
 
-	PointShader m_pointShader;
+	Updater					m_updater;
 
-	GLuint m_nrPointsPerX;
-	GLuint m_nrPointsPerY;
+	PointShader 			m_pointShader;
 
-	Matrix              m_viewProjection;
-	std::vector<Point>  m_points;
-	std::vector<GLushort> m_indices;
+	GLuint 					m_nrPointsPerX;
+	GLuint 					m_nrPointsPerY;
 
-#define NR_BUFFERS 2
-#define VBO 0
-#define IBO 1
+	Matrix              	m_viewProjection;
+	std::vector<Point>  	m_points;
+	std::vector<GLushort> 	m_indices;
 
-	GLuint m_buffers[NR_BUFFERS];
+	GLuint 					m_buffers[NR_BUFFERS];
 
 public:
 
@@ -37,6 +45,7 @@ public:
 	, m_nrPointsPerY(0)
 	{
 		memset(m_buffers, 0, NR_BUFFERS);
+		Matrix::identity(m_viewProjection);
 	}
 
 	virtual ~Engine()
@@ -47,7 +56,7 @@ public:
 
 	void clear();
 
-	bool init(int width, int height);
+	bool init(AAssetManager* pAssetManager, int width, int height);
 
 	bool render();
 

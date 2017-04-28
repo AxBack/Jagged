@@ -14,6 +14,11 @@ struct Vector3
 		return *this;
 	}
 
+	Vector3 operator*(const float scale) const
+	{
+		return {x * scale, y * scale, z * scale};
+	}
+
 	Vector3 operator+(const Vector3& rhs) const
 	{
 		return {x + rhs.x, y + rhs.y, z + rhs.z};

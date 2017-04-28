@@ -1,23 +1,24 @@
 package com.wallpaper.axb.jagged;
 
+import android.content.res.AssetManager;
 import android.graphics.Rect;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class JaggedRenderer implements GLSurfaceView.Renderer {
+class JaggedRenderer implements GLSurfaceView.Renderer {
 
-    private NativeEngine mRenderEngine = new NativeEngine();
+    private final AssetManager mAssetManager;
+    private final NativeEngine mRenderEngine = new NativeEngine();
 
     private int mWidth;
     private int mHeight;
 
     private boolean mIsInitialized = false;
 
-    public JaggedRenderer(Rect frame) {
-
+    public JaggedRenderer(AssetManager assetManager, Rect frame) {
+        mAssetManager = assetManager;
         mWidth = frame.width();
         mHeight = frame.height();
     }
@@ -51,7 +52,7 @@ public class JaggedRenderer implements GLSurfaceView.Renderer {
         if(mWidth == 0 || mHeight == 0)
             return;
 
-        mRenderEngine.create(mWidth, mHeight);
+        mRenderEngine.create(mAssetManager, mWidth, mHeight);
         mIsInitialized = true;
     }
 }

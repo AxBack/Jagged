@@ -19,6 +19,7 @@ add_library( # Sets the name of the library.
              src/main/cpp/matrix.cpp
              src/main/cpp/vector3.cpp
              src/main/cpp/point_shader.cpp
+             src/main/cpp/updater.cpp
              )
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -36,6 +37,7 @@ find_library( # Sets the name of the path variable.
 
 find_library( OPENGL_LIB GLESv3 )
 find_library( EGL_LIB EGL )
+find_library( ANDROID_LIB android)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -45,7 +47,7 @@ target_link_libraries( # Specifies the target library.
                        native-engine-lib
                        ${OPENGL_LIB}
                        ${EGL_LIB}
-
+                       ${ANDROID_LIB}
 
                        # Links the target library to the log library
                        # included in the NDK.

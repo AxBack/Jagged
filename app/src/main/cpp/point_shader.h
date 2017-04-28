@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <android/asset_manager.h>
 #include "pch.h"
 #include "matrix.h"
 
@@ -9,18 +10,15 @@ class PointShader
 private:
 
 #define VIEW_PROJECTION "viewProjection"
-#define POSITION "position"
-#define COLOR "color"
-
-	static const char* VS_CODE;
-	static const char* PS_CODE;
+#define XY "xy"
+#define Z "z"
 
 	GLuint m_vs;
 	GLuint m_ps;
 	GLuint m_program;
 
-	GLint m_positionLocation;
-	GLint m_colorLocation;
+	GLint m_xyLocation;
+	GLint m_zLocation;
 	GLint m_viewProjectionLocation;
 
 	bool verifyShader(GLuint shader)
@@ -37,6 +35,27 @@ private:
 		return true;
 	}
 
+	bool loadFile(AAssetManager* pAssetManager, const std::string& asset, std::string& outFile)
+	{
+		AAsset* pAsset = AAssetManager_open(pAssetManager, asset.c_str(), AASSET_MODE_STREAMING);
+		if(pAsset == nullptr)
+			return false;
+
+		outFile.clear();
+
+		static const size_t size = 1024;
+		int r = 0;
+		char* pBuffer = new char[size];
+		while((r = AAsset_read(pAsset, pBuffer, size)) > 0)
+		{
+			outFile.insert(outFile.end(), pBuffer, pBuffer+r);
+		}
+		AAsset_close(pAsset);
+
+		SAFE_DELETE_ARRAY(pBuffer);
+		return true;
+	}
+
 public:
 
 	PointShader()
@@ -44,52 +63,7 @@ public:
 	{
 	}
 
-	bool init()
-	{
-		m_vs = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(m_vs, 1, &VS_CODE, nullptr);
-		glCompileShader(m_vs);
-		if(!verifyShader(m_vs))
-			return false;
-
-		m_ps = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(m_ps, 1, &PS_CODE, nullptr);
-		glCompileShader(m_ps);
-		if(!verifyShader(m_ps))
-			return false;
-
-		m_program = glCreateProgram();
-		glAttachShader(m_program, m_vs);
-		glAttachShader(m_program, m_ps);
-		glLinkProgram(m_program);
-
-		GLint param = 0;
-		glGetProgramiv(m_program, GL_LINK_STATUS, &param);
-		if(param == GL_FALSE)
-		{
-			glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &param);
-			GLchar* pLog = new GLchar[param];
-			glGetProgramInfoLog(m_program, param, nullptr, pLog);
-			SAFE_DELETE_ARRAY(pLog);
-			return false;
-		}
-
-		m_positionLocation = glGetAttribLocation(m_program, POSITION);
-		m_colorLocation = glGetAttribLocation(m_program, COLOR);
-		m_viewProjectionLocation = glGetUniformLocation(m_program, VIEW_PROJECTION);
-
-		return true;
-	}
-
-	void setViewProjection(Matrix viewProjection)
-	{
-		if(m_program == 0)
-			return;
-
-		if(m_viewProjectionLocation >= 0)
-			glUniformMatrix4fv((GLuint)m_viewProjectionLocation, 1, GL_FALSE,
-			                   viewProjection.data());
-	}
+	bool init(AAssetManager* pAssetManager);
 
 	void release()
 	{
@@ -103,19 +77,8 @@ public:
 		}
 	}
 
-	void bind()
-	{
-		GLsizei stride = sizeof(GLfloat) * 7;
-		glUseProgram(m_program);
-		glVertexAttribPointer((GLuint)m_positionLocation, 3, GL_FLOAT, GL_FALSE, stride, 0);
-		glEnableVertexAttribArray((GLuint)m_positionLocation);
-
-		if(m_colorLocation >= 0)
-		{
-			size_t offset = sizeof(GLfloat) * 3;
-			glVertexAttribPointer((GLuint)m_colorLocation, 4, GL_FLOAT, GL_FALSE, stride,
-			                      (void*)offset);
-			glEnableVertexAttribArray((GLuint)m_colorLocation);
-		}
-	}
+	GLuint getProgram() { return m_program; }
+	GLuint getLocationXY() { return (GLuint)m_xyLocation; }
+	GLuint getLocationZ() { return (GLuint)m_zLocation; }
+	GLuint getViewProjectionLocation() {return m_viewProjectionLocation; }
 };

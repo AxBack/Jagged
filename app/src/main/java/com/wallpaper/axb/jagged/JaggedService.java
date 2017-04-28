@@ -35,12 +35,11 @@ public class JaggedService extends WallpaperService {
             super.onCreate(surfaceHolder);
 
             mSurfaceView = new JaggedSurfaceView(JaggedService.this);
-            mSurfaceView.setEGLConfigChooser(8,8,8,8,16,1);
+            mSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 1);
             mSurfaceView.setEGLContextClientVersion(3);
             mSurfaceView.setPreserveEGLContextOnPause(true);
-            mSurfaceView.setDebugFlags(GLSurfaceView.DEBUG_CHECK_GL_ERROR | GLSurfaceView.DEBUG_LOG_GL_CALLS);
 
-            mRenderer = new JaggedRenderer(mSurfaceView.getHolder().getSurfaceFrame());
+            mRenderer = new JaggedRenderer(getAssets(), mSurfaceView.getHolder().getSurfaceFrame());
             mSurfaceView.setRenderer(mRenderer);
             mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         }
@@ -65,7 +64,7 @@ public class JaggedService extends WallpaperService {
         public void onVisibilityChanged(boolean visible) {
             super.onVisibilityChanged(visible);
 
-            if(mSurfaceView != null) {
+            if (mSurfaceView != null) {
                 if (visible)
                     mSurfaceView.onResume();
                 else

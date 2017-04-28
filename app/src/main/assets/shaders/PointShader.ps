@@ -1,0 +1,15 @@
+#version 300 es
+precision mediump float;
+
+vec3 eyeNormal = vec3(0,0,1);
+vec4 color1 = vec4(160.0f/255.0f, 112.0f/255.0f, 9.0f/255.0f, 1);
+vec4 color2 = vec4(89.0f/255.0f, 46.0f/255.0f, 16.0f/255.0f, 1);
+
+in vec3 finalPos;
+
+out vec4 finalColor;
+
+void main() {
+    vec3 normal = normalize( cross(dFdx(finalPos), dFdy(finalPos)));
+    finalColor = vec4((normal + vec3(1,1,1)) * 0.5f, 1);
+}
