@@ -19,12 +19,10 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	if(!m_pointShader.init(pAssetManager))
 		return false;
 
-	static const float size = 60.0f;
-
 	Matrix projection, view;
 
-	m_nrPointsPerX = static_cast<GLuint>(width / size) + 1;
-	m_nrPointsPerY = static_cast<GLuint>(height / size) + 1;
+	m_nrPointsPerX = static_cast<GLuint>(width / SIZE) + 1;
+	m_nrPointsPerY = static_cast<GLuint>(height / SIZE) + 1;
 
 	float halfX = static_cast<float>(width) * 0.5f;
 	float halfY = static_cast<float>(height) * 0.5f;
@@ -105,7 +103,7 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	if(!m_updater.init(1.0/60.0, m_nrPointsPerX, m_nrPointsPerY, 50, size))
+	if(!m_updater.init(1.0/60.0, m_nrPointsPerX, m_nrPointsPerY, 50, SIZE))
 		return false;
 
 	return true;
@@ -138,4 +136,12 @@ bool Engine::render()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	return true;
+}
+
+void Engine::touch(float x, float y)
+{
+	UINT col = m_nrPointsPerX - static_cast<UINT>(x / SIZE);
+	UINT row = m_nrPointsPerY - static_cast<UINT>(y / SIZE);
+
+	m_updater.touch(row, col);
 }

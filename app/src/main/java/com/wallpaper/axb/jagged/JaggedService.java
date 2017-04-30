@@ -3,6 +3,7 @@ package com.wallpaper.axb.jagged;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.service.wallpaper.WallpaperService;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 public class JaggedService extends WallpaperService {
@@ -69,6 +70,19 @@ public class JaggedService extends WallpaperService {
                     mSurfaceView.onResume();
                 else
                     mSurfaceView.onPause();
+            }
+        }
+
+        @Override
+        public void onTouchEvent(MotionEvent event) {
+            super.onTouchEvent(event);
+
+            final float x = event.getX();
+            final float y = event.getY();
+
+            if (event.getAction() == MotionEvent.ACTION_DOWN
+                    || event.getAction() == MotionEvent.ACTION_MOVE) {
+                mRenderer.onTouch(x, y);
             }
         }
 

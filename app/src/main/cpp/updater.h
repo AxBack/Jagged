@@ -10,6 +10,22 @@ class Updater
 {
 private:
 
+	struct Point
+	{
+		float force;
+	};
+
+	struct Impact
+	{
+		enum TYPE { TOUCH };
+
+		TYPE type;
+		UINT row;
+		UINT col;
+	};
+
+	typedef std::vector<Point> point_vec;
+	typedef std::vector<Impact> impact_vec;
 	typedef std::vector<float> float_vec;
 
 	float 				m_updateFrequency;
@@ -17,11 +33,18 @@ private:
 	UINT 				m_nrPointsPerRow;
 	UINT 				m_nrPointsPerCol;
 
-	float_vec 			m_points;
-	float_vec 			m_workPoints;
+	impact_vec			m_impacts;
+
+	point_vec			m_points;
+	float_vec 			m_values;
+	float_vec 			m_workValues;
 
 	float 				m_min;
 	float 				m_max;
+	float 				m_base;
+
+	float 				m_inverseForceFactor;
+	float 				m_gravityFactor;
 
 	std::mutex			m_mutex;
 	std::atomic_bool	m_hasChanged;
@@ -33,12 +56,21 @@ private:
 
 	void run();
 
+	void handleImpacts();
+	void applyForces(float dt);
+	void addForce(UINT row, UINT col, float force);
+
 public:
 
 	Updater()
 	: m_hasChanged(false)
 	, m_running(false)
 	, m_updateFrequency(0)
+	, m_min(0)
+	, m_max(0)
+	, m_base(0)
+	, m_inverseForceFactor(0.2f)
+	, m_gravityFactor(0.25f)
 	{
 	}
 
@@ -55,11 +87,13 @@ public:
 		if(m_hasChanged)
 		{
 			m_mutex.lock();
-			memcpy(&m_points[0], &m_workPoints[0], sizeof(float)*m_points.size());
+			memcpy(&m_values[0], &m_workValues[0], sizeof(float)*m_values.size());
 			m_hasChanged = false;
 			m_mutex.unlock();
 		}
 
-		return &m_points[0];
+		return &m_values[0];
 	}
+
+	void touch(UINT row, UINT col);
 };

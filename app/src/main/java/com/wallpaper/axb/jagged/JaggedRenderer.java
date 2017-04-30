@@ -48,6 +48,12 @@ class JaggedRenderer implements GLSurfaceView.Renderer {
         mRenderEngine.render();
     }
 
+    public void onTouch(float x, float y) {
+        if(mIsInitialized) {
+            mRenderEngine.onTouch(x,y);
+        }
+    }
+
     private void createEngine() {
         if(mWidth == 0 || mHeight == 0)
             return;

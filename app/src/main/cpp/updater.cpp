@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <chrono>
+#include <cmath>
+
+#define EPSILON 0.00001f
 
 bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, float base,
 				   float interval)
@@ -13,27 +16,28 @@ bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, 
 	m_nrPointsPerRow = pointsPerRow;
 	m_nrPointsPerCol = pointsPerCol;
 
+	m_base = base;
 	m_min = base - interval * 0.5f;
 	m_max = base + interval * 0.5f;
 
 	UINT nrPoints = pointsPerRow * pointsPerCol;
-	m_points.resize(nrPoints, base);
-
-	for(UINT y = 1; y < m_nrPointsPerCol - 1; ++y)
-	{
-		for(UINT x = 1; x < m_nrPointsPerRow - 1; ++x)
-		{
-			m_points[y * m_nrPointsPerRow + x] += static_cast<float>(
-					rand() % static_cast<int>(interval * 0.25f)
-					- static_cast<int>(interval * 0.125f));
-		}
-	}
-
-	m_workPoints = float_vec(m_points);
+	m_points.resize(nrPoints, {0});
+	m_values.resize(nrPoints, base);
+	m_workValues = float_vec(m_values);
 
 	start();
 
 	return true;
+}
+
+void Updater::touch(UINT row, UINT col)
+{
+	if(row < m_nrPointsPerCol && col < m_nrPointsPerRow)
+	{
+		m_mutex.lock();
+		m_impacts.push_back({Impact::TOUCH, row, col});
+		m_mutex.unlock();
+	}
 }
 
 void Updater::start()
@@ -73,17 +77,62 @@ void Updater::run()
 		std::this_thread::sleep_until(next);
 		next += framerate{1};
 
-		for(UINT y = 1; y < m_nrPointsPerCol - 1; ++y)
-		{
-			for(UINT x = 1; x < m_nrPointsPerRow - 1; ++x)
-			{
-				UINT index = y * m_nrPointsPerRow + x;
-				m_workPoints[index] += static_cast<float>(rand() % 3 - 1);
+		handleImpacts();
 
-				m_workPoints[index] = std::min(m_max, std::max(m_min, m_workPoints[index]));
-			}
+		m_mutex.lock();
+		applyForces(m_updateFrequency);
+		m_mutex.unlock();
+	}
+}
+
+void Updater::handleImpacts()
+{
+	for(auto& it : m_impacts)
+	{
+		switch(it.type)
+		{
+			case Impact::TOUCH:
+				addForce(it.row, it.col, 3.0f);
+				break;
+		}
+	}
+
+	m_impacts.clear();
+}
+
+void Updater::applyForces(float dt)
+{
+	bool changed = false;
+	for(UINT index = 0; index < m_points.size(); ++index)
+	{
+		if(std::abs(m_points[index].force) > EPSILON)
+		{
+			m_workValues[index] = std::min(m_max,
+										   std::max(m_min, m_workValues[index] +
+														   m_points[index].force * dt));
+			m_points[index].force -= (m_points[index].force * m_inverseForceFactor * dt);
+			changed = true;
 		}
 
-		m_hasChanged = true;
+		if(std::abs(m_workValues[index] - m_base) > EPSILON)
+			m_points[index].force -= ((m_workValues[index] - m_base) * m_gravityFactor * dt);
 	}
+
+	if(changed)
+		m_hasChanged = true;
+}
+
+void Updater::addForce(UINT row, UINT col, float force)
+{
+	if(std::abs(force) < 1.0f
+	   || row == 0 || row == m_nrPointsPerCol - 1
+	   || col == 0 || col == m_nrPointsPerRow - 1)
+		return;
+
+	m_points[row * m_nrPointsPerRow + col].force += force;
+
+	addForce(row - 1, col, force * 0.5f);
+	addForce(row + 1, col, force * 0.5f);
+	addForce(row, col - 1, force * 0.5f);
+	addForce(row, col + 1, force * 0.5f);
 }

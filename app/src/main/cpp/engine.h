@@ -14,7 +14,8 @@ class Engine
 {
 private:
 
-#define SCALE_FACTOR 6;
+#define SCALE_FACTOR 6
+#define SIZE 60.0f
 #define NR_BUFFERS 3
 #define STATIC_BUFFER_INDEX 0
 #define DYNAMIC_BUFFER_INDEX 1
@@ -60,5 +61,6 @@ public:
 
 	bool render();
 
+	void touch(float x, float y);
 };
 
