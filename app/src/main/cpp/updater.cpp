@@ -5,7 +5,7 @@
 #include <chrono>
 #include <cmath>
 
-#define EPSILON 0.00001f
+#define EPSILON 0.0001f
 
 bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, float base,
 				   float interval)
@@ -92,7 +92,7 @@ void Updater::handleImpacts()
 		switch(it.type)
 		{
 			case Impact::TOUCH:
-				addForce(it.row, it.col, 3.0f);
+				addForce(it.row, it.col, 0, 0, m_perTouchFactor);
 				break;
 		}
 	}
@@ -102,6 +102,8 @@ void Updater::handleImpacts()
 
 void Updater::applyForces(float dt)
 {
+	float interval = (m_max - m_min) * 0.5f;
+
 	bool changed = false;
 	for(UINT index = 0; index < m_points.size(); ++index)
 	{
@@ -110,19 +112,21 @@ void Updater::applyForces(float dt)
 			m_workValues[index] = std::min(m_max,
 										   std::max(m_min, m_workValues[index] +
 														   m_points[index].force * dt));
-			m_points[index].force -= (m_points[index].force * m_inverseForceFactor * dt);
 			changed = true;
 		}
 
-		if(std::abs(m_workValues[index] - m_base) > EPSILON)
-			m_points[index].force -= ((m_workValues[index] - m_base) * m_gravityFactor * dt);
+		float diff = m_workValues[index] - m_base;
+		m_points[index].force -= ((std::abs(diff) / interval) * m_points[index].force * dt);
+
+		if(std::abs(diff) > EPSILON)
+			m_points[index].force -= (diff * m_gravityFactor * dt);
 	}
 
 	if(changed)
 		m_hasChanged = true;
 }
 
-void Updater::addForce(UINT row, UINT col, float force)
+void Updater::addForce(int row, int col, int modRow, int modCol, float force)
 {
 	if(std::abs(force) < 1.0f
 	   || row == 0 || row == m_nrPointsPerCol - 1
@@ -131,8 +135,15 @@ void Updater::addForce(UINT row, UINT col, float force)
 
 	m_points[row * m_nrPointsPerRow + col].force += force;
 
-	addForce(row - 1, col, force * 0.5f);
-	addForce(row + 1, col, force * 0.5f);
-	addForce(row, col - 1, force * 0.5f);
-	addForce(row, col + 1, force * 0.5f);
+	if(modRow <= 0)
+		addForce(row - 1, col, -1, 0, force * 0.5f);
+
+	if(modRow >= 0)
+		addForce(row + 1, col, 1, 0, force * 0.5f);
+
+	if(modCol <= 0)
+		addForce(row, col - 1, 0, -1, force * 0.5f);
+
+	if(modCol >= 0)
+		addForce(row, col + 1, 0, 1, force * 0.5f);
 }

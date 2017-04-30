@@ -43,19 +43,19 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	float offsetX = (w / static_cast<GLfloat>(m_nrPointsPerX - 1));
 	float offsetY = (h / static_cast<GLfloat>(m_nrPointsPerY - 1));
 
-	for(unsigned int y = 0; y < m_nrPointsPerY; ++y)
+	for(unsigned int row = 0; row < m_nrPointsPerY; ++row)
 	{
-		for(unsigned int x = 0; x < m_nrPointsPerX; ++x)
+		for(unsigned int col = 0; col < m_nrPointsPerX; ++col)
 		{
-			unsigned int index = y * m_nrPointsPerX + x;
+			unsigned int index = row * m_nrPointsPerX + col;
 			m_points[index] = {
-					x * offsetX,
-					y * offsetY
+					col * offsetX,
+					row * offsetY
 			};
 
-			if(y < m_nrPointsPerY - 1 && x < m_nrPointsPerX)
+			if(row < m_nrPointsPerY - 1 && col < m_nrPointsPerX)
 			{
-				if(x != 0)
+				if(col != 0)
 				{
 					m_indices.insert(m_indices.end(), {
 							static_cast<GLushort>(index + m_nrPointsPerX - 1),
@@ -64,7 +64,7 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 					});
 				}
 
-				if(x < m_nrPointsPerX - 1)
+				if(col < m_nrPointsPerX - 1)
 				{
 					m_indices.insert(m_indices.end(), {
 							static_cast<GLushort>(index),
@@ -103,7 +103,7 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	if(!m_updater.init(1.0/60.0, m_nrPointsPerX, m_nrPointsPerY, 50, SIZE))
+	if(!m_updater.init(1.0/60.0, m_nrPointsPerX, m_nrPointsPerY, 50, 100))
 		return false;
 
 	return true;

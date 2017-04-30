@@ -45,6 +45,7 @@ private:
 
 	float 				m_inverseForceFactor;
 	float 				m_gravityFactor;
+	float 				m_perTouchFactor;
 
 	std::mutex			m_mutex;
 	std::atomic_bool	m_hasChanged;
@@ -58,7 +59,7 @@ private:
 
 	void handleImpacts();
 	void applyForces(float dt);
-	void addForce(UINT row, UINT col, float force);
+	void addForce(int row, int col, int modRow, int modCol, float force);
 
 public:
 
@@ -69,8 +70,9 @@ public:
 	, m_min(0)
 	, m_max(0)
 	, m_base(0)
-	, m_inverseForceFactor(0.2f)
-	, m_gravityFactor(0.25f)
+	, m_inverseForceFactor(0.55f)
+	, m_gravityFactor(0.85f)
+	, m_perTouchFactor(5.0f)
 	{
 	}
 
