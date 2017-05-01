@@ -31,6 +31,9 @@ public class JaggedService extends WallpaperService {
         private JaggedSurfaceView mSurfaceView;
         private JaggedRenderer mRenderer;
 
+        private float mTouchX = 0;
+        private float mTouchY = 0;
+
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
@@ -80,9 +83,19 @@ public class JaggedService extends WallpaperService {
             final float x = event.getX();
             final float y = event.getY();
 
-            if (event.getAction() == MotionEvent.ACTION_DOWN
-                    || event.getAction() == MotionEvent.ACTION_MOVE) {
-                mRenderer.onTouch(x, y);
+            if (x != mTouchX || y != mTouchY) {
+                mTouchX = x;
+                mTouchY = y;
+
+                if (event.getAction() == MotionEvent.ACTION_DOWN
+                        || event.getAction() == MotionEvent.ACTION_MOVE) {
+                    mSurfaceView.queueEvent(new Runnable() {
+                        @Override
+                        public void run() {
+                            mRenderer.onTouch(x, y);
+                        }
+                    });
+                }
             }
         }
 
