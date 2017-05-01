@@ -2,14 +2,17 @@
 precision mediump float;
 
 vec3 eyeNormal = vec3(0,0,1);
-vec4 color1 = vec4(160.0f/255.0f, 112.0f/255.0f, 9.0f/255.0f, 1);
-vec4 color2 = vec4(89.0f/255.0f, 46.0f/255.0f, 16.0f/255.0f, 1);
+//vec4 lightColor = vec4(155.0f/255.0f, 4.0f/255.0f, 7.0f/255.0f, 0.0f);
+vec4 lightColor = vec4(255.0f/255.0f, 255.0f/255.0f, 255.0f/255.0f, 0.0f);
+float lightIntensity = 0.75f;
 
 in vec3 finalPos;
+in vec3 toLightNormal;
+in vec4 color;
 
 out vec4 finalColor;
 
 void main() {
     vec3 normal = normalize( cross(dFdx(finalPos), dFdy(finalPos)));
-    finalColor = vec4((normal + vec3(1,1,1)) * 0.5f, 1);
+    finalColor = color + (lightColor * max(0.0f, dot(normal, toLightNormal)) * lightIntensity);
 }

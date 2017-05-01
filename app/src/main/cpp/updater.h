@@ -43,6 +43,9 @@ private:
 	float 				m_max;
 	float 				m_base;
 
+	float 				m_maxDiffX;
+	float 				m_maxDiffY;
+
 	float 				m_inverseForceFactor;
 	float 				m_gravityFactor;
 	float 				m_perTouchFactor;
@@ -58,7 +61,11 @@ private:
 	void run();
 
 	void handleImpacts();
+
 	void applyForces(float dt);
+	void evenOut(float dt);
+	void evenOut(UINT p1, UINT p2, float maxDiff, float dt);
+
 	void addForce(int row, int col, int modRow, int modCol, float force);
 
 public:
@@ -73,6 +80,8 @@ public:
 	, m_inverseForceFactor(0.55f)
 	, m_gravityFactor(0.85f)
 	, m_perTouchFactor(5.0f)
+	, m_maxDiffX(100.0f)
+	, m_maxDiffY(100.0f)
 	{
 	}
 
@@ -82,7 +91,7 @@ public:
 	}
 
 	bool init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, float base,
-			  float interval);
+			  float interval, float maxDiffX, float maxDiffY);
 
 	const float* const getPoints()
 	{

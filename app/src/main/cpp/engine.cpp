@@ -103,7 +103,8 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	if(!m_updater.init(1.0/60.0, m_nrPointsPerX, m_nrPointsPerY, 50, 100))
+	if(!m_updater.init(1.0 / 60.0, m_nrPointsPerX, m_nrPointsPerY, 50, 100, 5.0f,
+					   (width / height) * 5.0f))
 		return false;
 
 	return true;

@@ -8,7 +8,7 @@
 #define EPSILON 0.0001f
 
 bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, float base,
-				   float interval)
+				   float interval, float maxDiffX, float maxDiffY)
 {
 	srand((unsigned int)time(nullptr));
 
@@ -19,6 +19,9 @@ bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, 
 	m_base = base;
 	m_min = base - interval * 0.5f;
 	m_max = base + interval * 0.5f;
+
+	m_maxDiffX = maxDiffX;
+	m_maxDiffY = maxDiffY;
 
 	UINT nrPoints = pointsPerRow * pointsPerCol;
 	m_points.resize(nrPoints, {0});
@@ -81,6 +84,7 @@ void Updater::run()
 
 		m_mutex.lock();
 		applyForces(m_updateFrequency);
+		evenOut(m_updateFrequency);
 		m_mutex.unlock();
 	}
 }
@@ -124,6 +128,32 @@ void Updater::applyForces(float dt)
 
 	if(changed)
 		m_hasChanged = true;
+}
+
+void Updater::evenOut(float dt)
+{
+	for(UINT row = 1; row < m_nrPointsPerCol-1; ++row)
+	{
+		for(UINT col = 1; col < m_nrPointsPerRow-1; ++col)
+		{
+			unsigned int index = row * m_nrPointsPerRow + col;
+			if(col < m_nrPointsPerRow-3)
+				evenOut(index,index+1, m_maxDiffX, dt);
+
+			if(row < m_nrPointsPerCol-3)
+				evenOut(index,index+m_nrPointsPerRow, m_maxDiffY, dt);
+		}
+	}
+}
+
+void Updater::evenOut(UINT p1, UINT p2, float maxDiff, float dt)
+{
+	float diff = m_workValues[p1] - m_workValues[p2];
+	if(std::abs(diff) > maxDiff)
+	{
+		m_points[p1].force -= diff * dt;
+		m_points[p2].force += diff * dt;
+	}
 }
 
 void Updater::addForce(int row, int col, int modRow, int modCol, float force)
