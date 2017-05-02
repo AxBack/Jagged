@@ -1,10 +1,12 @@
 #pragma once
 
 #include "pch.h"
+#include "agitators.h"
 #include <vector>
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include "agitators.h"
 
 class Updater
 {
@@ -15,17 +17,15 @@ private:
 		float force;
 	};
 
-	struct Impact
+	struct Touch
 	{
-		enum TYPE { TOUCH };
-
-		TYPE type;
 		UINT row;
 		UINT col;
 	};
 
+	typedef std::vector<Agitator*> agitator_vec;
 	typedef std::vector<Point> point_vec;
-	typedef std::vector<Impact> impact_vec;
+	typedef std::vector<Touch> touch_vec;
 	typedef std::vector<float> float_vec;
 
 	float 				m_updateFrequency;
@@ -33,7 +33,10 @@ private:
 	UINT 				m_nrPointsPerRow;
 	UINT 				m_nrPointsPerCol;
 
-	impact_vec			m_impacts;
+	agitator_vec		m_agitatorOffloader;
+
+	agitator_vec		m_agitators;
+	touch_vec			m_touches;
 
 	point_vec			m_points;
 	float_vec 			m_values;
@@ -68,6 +71,9 @@ private:
 
 	void addForce(int row, int col, int modRow, int modCol, float force);
 
+	void clearAgitators(bool lock = true);
+	void add(const int numAgitators, Agitator** ppAgitators);
+
 public:
 
 	Updater()
@@ -88,10 +94,12 @@ public:
 	virtual ~Updater()
 	{
 		stop();
+		clearAgitators(false);
 	}
 
 	bool init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, float base,
-			  float interval, float maxDiffX, float maxDiffY);
+			  float interval, float maxDiffX, float maxDiffY,
+			  UINT numAgitators, Agitator** ppAgitators);
 
 	const float* const getPoints()
 	{

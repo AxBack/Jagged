@@ -76,6 +76,15 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 		}
 	}
 
+	std::vector<Agitator*> agitators;
+
+	agitators.push_back(new Wave(2.0f, 0.1f, 0, width));
+
+	if(!m_updater.init(1.0f / 60.0f, m_nrPointsPerX, m_nrPointsPerY, 50, 100, 1.0f,
+					   (width / height) * 1.0f,
+			agitators.size(), agitators.size() > 0 ? &agitators[0] : nullptr))
+		return false;
+
 	glGenBuffers(NR_BUFFERS, m_buffers);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffers[INDEX_BUFFER_INDEX]);
@@ -102,10 +111,6 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	glBlendColor(0, 0, 0, 1);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-
-	if(!m_updater.init(1.0 / 60.0, m_nrPointsPerX, m_nrPointsPerY, 50, 100, 5.0f,
-					   (width / height) * 5.0f))
-		return false;
 
 	return true;
 }

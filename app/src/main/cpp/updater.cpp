@@ -8,8 +8,12 @@
 #define EPSILON 0.0001f
 
 bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, float base,
-				   float interval, float maxDiffX, float maxDiffY)
+				   float interval, float maxDiffX, float maxDiffY,
+				   UINT numAgitators, Agitator** ppAgitators)
 {
+	stop();
+	clearAgitators(false);
+
 	srand((unsigned int)time(nullptr));
 
 	m_updateFrequency = updateFrequency;
@@ -28,9 +32,30 @@ bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, 
 	m_values.resize(nrPoints, base);
 	m_workValues = float_vec(m_values);
 
+	if(numAgitators > 0)
+		add(numAgitators, ppAgitators);
+
 	start();
 
 	return true;
+}
+
+void Updater::clearAgitators(bool lock)
+{
+	if(lock)
+		m_mutex.lock();
+
+	for(auto& it : m_agitatorOffloader)
+		SAFE_DELETE(it);
+	m_agitatorOffloader.clear();
+
+	for(auto& it : m_agitators)
+		SAFE_DELETE(it);
+	m_agitators.clear();
+
+	if(lock)
+		m_mutex.lock();
+
 }
 
 void Updater::touch(UINT row, UINT col)
@@ -38,9 +63,17 @@ void Updater::touch(UINT row, UINT col)
 	if(row < m_nrPointsPerCol && col < m_nrPointsPerRow)
 	{
 		m_mutex.lock();
-		m_impacts.push_back({Impact::TOUCH, row, col});
+		m_touches.push_back({row, col});
 		m_mutex.unlock();
 	}
+}
+
+void Updater::add(const int numAgitators, Agitator** ppAgitators)
+{
+	m_mutex.lock();
+	for(UINT i=0; i<numAgitators; ++i)
+		m_agitatorOffloader.push_back(ppAgitators[i]);
+	m_mutex.unlock();
 }
 
 void Updater::start()
@@ -83,6 +116,14 @@ void Updater::run()
 		handleImpacts();
 
 		m_mutex.lock();
+
+		if(m_agitatorOffloader.size() > 0)
+		{
+			m_agitators.insert(m_agitators.end(), m_agitatorOffloader.begin(),
+							   m_agitatorOffloader.end());
+			m_agitatorOffloader.clear();
+		}
+
 		applyForces(m_updateFrequency);
 		evenOut(m_updateFrequency);
 		m_mutex.unlock();
@@ -91,17 +132,12 @@ void Updater::run()
 
 void Updater::handleImpacts()
 {
-	for(auto& it : m_impacts)
-	{
-		switch(it.type)
-		{
-			case Impact::TOUCH:
-				addForce(it.row, it.col, 0, 0, m_perTouchFactor);
-				break;
-		}
-	}
+	for(auto& it : m_touches)
+		addForce(it.row, it.col, 0, 0, m_perTouchFactor);
+	m_touches.clear();
 
-	m_impacts.clear();
+	for(auto& it : m_agitators)
+		it->run(this, m_updateFrequency);
 }
 
 void Updater::applyForces(float dt)
