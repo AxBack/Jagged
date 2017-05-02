@@ -20,6 +20,7 @@ add_library( # Sets the name of the library.
              src/main/cpp/vector3.cpp
              src/main/cpp/point_shader.cpp
              src/main/cpp/updater.cpp
+             src/main/cpp/agitators.cpp
              )
 
 # Searches for a specified prebuilt library and stores the path as a
