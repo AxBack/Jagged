@@ -71,7 +71,7 @@ void Updater::touch(UINT row, UINT col)
 void Updater::add(const int numAgitators, Agitator** ppAgitators)
 {
 	m_mutex.lock();
-	for(UINT i=0; i<numAgitators; ++i)
+	for(UINT i = 0; i < numAgitators; ++i)
 		m_agitatorOffloader.push_back(ppAgitators[i]);
 	m_mutex.unlock();
 }
@@ -168,16 +168,16 @@ void Updater::applyForces(float dt)
 
 void Updater::evenOut(float dt)
 {
-	for(UINT row = 1; row < m_nrPointsPerCol-1; ++row)
+	for(UINT row = 1; row < m_nrPointsPerCol - 1; ++row)
 	{
-		for(UINT col = 1; col < m_nrPointsPerRow-1; ++col)
+		for(UINT col = 1; col < m_nrPointsPerRow - 1; ++col)
 		{
 			unsigned int index = row * m_nrPointsPerRow + col;
-			if(col < m_nrPointsPerRow-3)
-				evenOut(index,index+1, m_maxDiffX, dt);
+			if(col < m_nrPointsPerRow - 3)
+				evenOut(index, index + 1, m_maxDiffX, dt);
 
-			if(row < m_nrPointsPerCol-3)
-				evenOut(index,index+m_nrPointsPerRow, m_maxDiffY, dt);
+			if(row < m_nrPointsPerCol - 3)
+				evenOut(index, index + m_nrPointsPerRow, m_maxDiffY, dt);
 		}
 	}
 }
@@ -190,6 +190,11 @@ void Updater::evenOut(UINT p1, UINT p2, float maxDiff, float dt)
 		m_points[p1].force -= diff * dt;
 		m_points[p2].force += diff * dt;
 	}
+}
+
+void Updater::addForce(int row, int col, float force)
+{
+	m_points[row * m_nrPointsPerRow + col].force += force;
 }
 
 void Updater::addForce(int row, int col, int modRow, int modCol, float force)

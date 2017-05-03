@@ -2,8 +2,6 @@
 
 void Engine::clear()
 {
-	m_points.clear();
-	m_indices.clear();
 	if(m_buffers[0] == 0)
 	{
 		glDeleteBuffers(NR_BUFFERS, m_buffers);
@@ -38,7 +36,8 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	m_viewProjection = projection * view;
 
 	UINT nrPoints = m_nrPointsPerX * m_nrPointsPerY;
-	m_points.resize(nrPoints);
+	std::vector<Point> points(nrPoints, {0, 0});
+	std::vector<GLushort> indices;
 
 	float offsetX = (w / static_cast<GLfloat>(m_nrPointsPerX - 1));
 	float offsetY = (h / static_cast<GLfloat>(m_nrPointsPerY - 1));
@@ -48,7 +47,7 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 		for(unsigned int col = 0; col < m_nrPointsPerX; ++col)
 		{
 			unsigned int index = row * m_nrPointsPerX + col;
-			m_points[index] = {
+			points[index] = {
 					col * offsetX,
 					row * offsetY
 			};
@@ -57,7 +56,7 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 			{
 				if(col != 0)
 				{
-					m_indices.insert(m_indices.end(), {
+					indices.insert(indices.end(), {
 							static_cast<GLushort>(index + m_nrPointsPerX - 1),
 							static_cast<GLushort>(index),
 							static_cast<GLushort>(index + m_nrPointsPerX)
@@ -66,7 +65,7 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 
 				if(col < m_nrPointsPerX - 1)
 				{
-					m_indices.insert(m_indices.end(), {
+					indices.insert(indices.end(), {
 							static_cast<GLushort>(index),
 							static_cast<GLushort>(index + 1),
 							static_cast<GLushort>(index + m_nrPointsPerX)
@@ -77,27 +76,27 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	}
 
 	std::vector<Agitator*> agitators;
-
-	agitators.push_back(new Wave(2.0f, 0.1f, 0, width));
+	agitators.push_back(new Wave(10.0f, 2.0f, 0.13f));
+	agitators.push_back(new Rain(5.0f, 0.1f));
 
 	if(!m_updater.init(1.0f / 60.0f, m_nrPointsPerX, m_nrPointsPerY, 50, 100, 1.0f,
 					   (width / height) * 1.0f,
-			agitators.size(), agitators.size() > 0 ? &agitators[0] : nullptr))
+					   agitators.size(), agitators.size() > 0 ? &agitators[0] : nullptr))
 		return false;
 
 	glGenBuffers(NR_BUFFERS, m_buffers);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffers[INDEX_BUFFER_INDEX]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * m_indices.size(), &m_indices[0],
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indices.size(), &indices[0],
 				 GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_buffers[STATIC_BUFFER_INDEX]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Point) * m_points.size(), &m_points[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Point) * points.size(), &points[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_buffers[DYNAMIC_BUFFER_INDEX]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_points.size(), nullptr, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * points.size(), nullptr, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -123,10 +122,13 @@ bool Engine::render()
 	glUniformMatrix4fv(m_pointShader.getViewProjectionLocation(), 1, GL_FALSE,
 					   m_viewProjection.data());
 
+	UINT nrPoints = m_nrPointsPerX * m_nrPointsPerY;
+
 	glBindBuffer(GL_ARRAY_BUFFER, m_buffers[DYNAMIC_BUFFER_INDEX]);
-	Point* p = (Point*)glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof(float) * m_points.size(),
+	Point* p = (Point*)glMapBufferRange(GL_ARRAY_BUFFER, 0,
+										sizeof(float) * nrPoints,
 										GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
-	memcpy(p, m_updater.getPoints(), sizeof(float) * m_points.size());
+	memcpy(p, m_updater.getPoints(), sizeof(float) * nrPoints);
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glVertexAttribPointer(m_pointShader.getLocationZ(), 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
 	glEnableVertexAttribArray(m_pointShader.getLocationZ());
@@ -136,7 +138,7 @@ bool Engine::render()
 	glEnableVertexAttribArray(m_pointShader.getLocationXY());
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffers[INDEX_BUFFER_INDEX]);
-	glDrawElements(GL_TRIANGLES, (GLsizei)m_indices.size(), GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, m_nrIndices, GL_UNSIGNED_SHORT, (void*)0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

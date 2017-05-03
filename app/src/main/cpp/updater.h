@@ -10,12 +10,15 @@
 
 class Updater
 {
-private:
+public:
 
 	struct Point
 	{
+		float x, y;
 		float force;
 	};
+
+private:
 
 	struct Touch
 	{
@@ -69,8 +72,6 @@ private:
 	void evenOut(float dt);
 	void evenOut(UINT p1, UINT p2, float maxDiff, float dt);
 
-	void addForce(int row, int col, int modRow, int modCol, float force);
-
 	void clearAgitators(bool lock = true);
 	void add(const int numAgitators, Agitator** ppAgitators);
 
@@ -115,4 +116,10 @@ public:
 	}
 
 	void touch(UINT row, UINT col);
+
+	void addForce(int row, int col, float force);
+	void addForce(int row, int col, int modRow, int modCol, float force);
+
+	UINT getNrPointsPerRow() const { return m_nrPointsPerRow; }
+	UINT getNrPointsPerCol() const { return m_nrPointsPerCol; }
 };

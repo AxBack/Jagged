@@ -26,18 +26,18 @@ private:
 		GLfloat x,y;
 	};
 
-	Updater					m_updater;
+	Updater			m_updater;
 
-	PointShader 			m_pointShader;
+	PointShader 	m_pointShader;
 
-	GLuint 					m_nrPointsPerX;
-	GLuint 					m_nrPointsPerY;
+	GLuint 			m_nrPointsPerX;
+	GLuint 			m_nrPointsPerY;
 
-	Matrix              	m_viewProjection;
-	std::vector<Point>  	m_points;
-	std::vector<GLushort> 	m_indices;
+	GLuint			m_nrIndices;
 
-	GLuint 					m_buffers[NR_BUFFERS];
+	Matrix          m_viewProjection;
+
+	GLuint 			m_buffers[NR_BUFFERS];
 
 public:
 
