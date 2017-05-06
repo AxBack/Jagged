@@ -11,6 +11,9 @@ Java_com_wallpaper_axb_jagged_NativeEngine_create(JNIEnv* env, jobject /* this *
 												  jobject assetManager,
 												  int width, int height)
 {
+	if(m_pEngine != nullptr)
+		SAFE_DELETE(m_pEngine);
+
 	m_pEngine = new Engine;
 	AAssetManager* pAssetManager = AAssetManager_fromJava(env, assetManager);
 	return m_pEngine->init(pAssetManager, width, height);
@@ -29,6 +32,20 @@ Java_com_wallpaper_axb_jagged_NativeEngine_render(JNIEnv* pEnv, jobject /*this *
 		return m_pEngine->render();
 
 	return JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_com_wallpaper_axb_jagged_NativeEngine_resume(JNIEnv* pEnv, jobject /*this*/)
+{
+	if(m_pEngine)
+		m_pEngine->resume();
+}
+
+JNIEXPORT void JNICALL
+Java_com_wallpaper_axb_jagged_NativeEngine_pause(JNIEnv* pEnv, jobject /*this*/)
+{
+	if(m_pEngine)
+		m_pEngine->pause();
 }
 
 JNIEXPORT void JNICALL

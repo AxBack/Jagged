@@ -34,18 +34,25 @@ class JaggedRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public synchronized void onSurfaceChanged(GL10 gl, int width, int height) {
-        mWidth = width;
-        mHeight = height;
-        createEngine();
+
+        if(width != mWidth || height != mHeight) {
+            mWidth = width;
+            mHeight = height;
+            createEngine();
+        }
     }
 
     @Override
     public synchronized void onDrawFrame(GL10 gl) {
-        if (!mIsInitialized) {
-            createEngine();
-        }
-
         mRenderEngine.render();
+    }
+
+    public void resume() {
+        mRenderEngine.resume();
+    }
+
+    public void pause() {
+        mRenderEngine.pause();
     }
 
     public void onTouch(float x, float y) {
@@ -54,8 +61,8 @@ class JaggedRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    private void createEngine() {
-        if(mWidth == 0 || mHeight == 0)
+    private synchronized void createEngine() {
+        if(mIsInitialized || mWidth == 0 || mHeight == 0)
             return;
 
         mRenderEngine.create(mAssetManager, mWidth, mHeight);

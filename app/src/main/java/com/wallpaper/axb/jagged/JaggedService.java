@@ -107,8 +107,19 @@ public class JaggedService extends WallpaperService {
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-
                 super.surfaceCreated(holder);
+            }
+
+            @Override
+            public void onResume() {
+                super.onResume();
+                mRenderer.resume();
+            }
+
+            @Override
+            public void onPause() {
+                super.onPause();
+                mRenderer.pause();
             }
 
             @Override

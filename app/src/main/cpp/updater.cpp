@@ -12,9 +12,11 @@ bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, 
 				   UINT numAgitators, Agitator** ppAgitators)
 {
 	stop();
-	clearAgitators(false);
+	clearAgitators();
 
 	srand((unsigned int)time(nullptr));
+
+	std::lock_guard<std::mutex> _(m_mutex);
 
 	m_updateFrequency = updateFrequency;
 	m_nrPointsPerRow = pointsPerRow;
@@ -35,16 +37,11 @@ bool Updater::init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, 
 	if(numAgitators > 0)
 		add(numAgitators, ppAgitators);
 
-	start();
-
 	return true;
 }
 
-void Updater::clearAgitators(bool lock)
+void Updater::clearAgitators()
 {
-	if(lock)
-		m_mutex.lock();
-
 	for(auto& it : m_agitatorOffloader)
 		SAFE_DELETE(it);
 	m_agitatorOffloader.clear();
@@ -52,32 +49,26 @@ void Updater::clearAgitators(bool lock)
 	for(auto& it : m_agitators)
 		SAFE_DELETE(it);
 	m_agitators.clear();
-
-	if(lock)
-		m_mutex.lock();
-
 }
 
 void Updater::touch(UINT row, UINT col)
 {
 	if(row < m_nrPointsPerCol && col < m_nrPointsPerRow)
 	{
-		m_mutex.lock();
+		std::lock_guard<std::mutex> _(m_mutex);
 		m_touches.push_back({row, col});
-		m_mutex.unlock();
 	}
 }
 
 void Updater::add(const int numAgitators, Agitator** ppAgitators)
 {
-	m_mutex.lock();
 	for(UINT i = 0; i < numAgitators; ++i)
 		m_agitatorOffloader.push_back(ppAgitators[i]);
-	m_mutex.unlock();
 }
 
 void Updater::start()
 {
+	std::lock_guard<std::mutex> _(m_mutex);
 	if(m_running)
 		return;
 
@@ -90,7 +81,11 @@ void Updater::stop()
 	if(!m_running)
 		return;
 
-	m_running = false;
+	{
+		std::lock_guard<std::mutex> _(m_mutex);
+		m_running = false;
+	}
+
 	if(m_workThread.joinable())
 	{
 		try
@@ -99,6 +94,7 @@ void Updater::stop()
 		}
 		catch(...)
 		{
+
 		}
 	}
 }
@@ -108,7 +104,7 @@ void Updater::run()
 	using framerate = std::chrono::duration<std::chrono::steady_clock::rep, std::ratio<1, 60>>;
 	auto next = std::chrono::steady_clock::now() + framerate(1);
 
-	while(m_running)
+	while(true)
 	{
 		std::this_thread::sleep_until(next);
 		next += framerate{1};

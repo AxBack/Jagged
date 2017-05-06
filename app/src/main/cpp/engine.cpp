@@ -8,6 +8,7 @@ void Engine::clear()
 		for(unsigned int i = 0; i < NR_BUFFERS; ++i)
 			m_buffers[i] = 0;
 	}
+	m_pointShader.release();
 }
 
 bool Engine::init(AAssetManager* pAssetManager, int width, int height)
@@ -76,7 +77,7 @@ bool Engine::init(AAssetManager* pAssetManager, int width, int height)
 	}
 
 	std::vector<Agitator*> agitators;
-	agitators.push_back(new Wave(10.0f, 2.0f, 0.13f));
+	//agitators.push_back(new Wave(10.0f, 2.0f, 0.13f));
 	agitators.push_back(new Rain(5.0f, 0.1f));
 
 	if(!m_updater.init(1.0f / 60.0f, m_nrPointsPerX, m_nrPointsPerY, 50, 100, 1.0f,

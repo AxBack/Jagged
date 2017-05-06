@@ -7,6 +7,8 @@ class NativeEngine {
     public native boolean create(AssetManager assetManager, int width, int height);
     public native void destroy();
     public native boolean render();
+    public native void resume();
+    public native void pause();
     public native void onTouch(float x, float y);
 
 

@@ -61,6 +61,9 @@ public:
 
 	bool render();
 
+	void resume() { m_updater.resume(); }
+	void pause() { m_updater.pause(); }
+
 	void touch(float x, float y);
 };
 

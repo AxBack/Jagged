@@ -58,7 +58,7 @@ private:
 
 	std::mutex			m_mutex;
 	std::atomic_bool	m_hasChanged;
-	std::atomic_bool 	m_running;
+	bool 				m_running;
 	std::thread			m_workThread;
 
 	void start();
@@ -72,7 +72,7 @@ private:
 	void evenOut(float dt);
 	void evenOut(UINT p1, UINT p2, float maxDiff, float dt);
 
-	void clearAgitators(bool lock = true);
+	void clearAgitators();
 	void add(const int numAgitators, Agitator** ppAgitators);
 
 public:
@@ -95,7 +95,7 @@ public:
 	virtual ~Updater()
 	{
 		stop();
-		clearAgitators(false);
+		clearAgitators();
 	}
 
 	bool init(float updateFrequency, UINT pointsPerRow, UINT pointsPerCol, float base,
@@ -106,13 +106,22 @@ public:
 	{
 		if(m_hasChanged)
 		{
-			m_mutex.lock();
+			std::lock_guard<std::mutex> _(m_mutex);
 			memcpy(&m_values[0], &m_workValues[0], sizeof(float)*m_values.size());
 			m_hasChanged = false;
-			m_mutex.unlock();
 		}
 
 		return &m_values[0];
+	}
+
+	void resume()
+	{
+		start();
+	}
+
+	void pause()
+	{
+		stop();
 	}
 
 	void touch(UINT row, UINT col);
