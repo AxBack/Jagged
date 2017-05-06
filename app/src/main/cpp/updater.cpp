@@ -110,8 +110,11 @@ void Updater::run()
 		next += framerate{1};
 
 		handleImpacts();
+		evenOut(m_updateFrequency);
 
-		m_mutex.lock();
+		std::lock_guard<std::mutex> _(m_mutex);
+		if(!m_running)
+			break;
 
 		if(m_agitatorOffloader.size() > 0)
 		{
@@ -121,8 +124,6 @@ void Updater::run()
 		}
 
 		applyForces(m_updateFrequency);
-		evenOut(m_updateFrequency);
-		m_mutex.unlock();
 	}
 }
 
